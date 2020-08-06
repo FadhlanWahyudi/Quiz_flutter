@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_app/question_logic.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+
+QuestionLogic questionLogic = QuestionLogic();
 
 void main() => runApp(QuizApp());
 
@@ -37,6 +41,44 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  List<Widget> scoreResult = [
+    Text("Hasil", style: TextStyle(color: Colors.white),)
+  ];
+
+  void checkAnswer(bool answer) {
+    bool correctAnswer = questionLogic.getCorrectAnswer();
+
+    setState(() {
+      if (questionLogic.isFinish()) {
+        Alert(
+          context: context,
+          type: AlertType.success,
+          title: "Quiz Selesai !",
+          desc: "Main Ulang Quiz",
+          buttons: [
+            DialogButton(
+              child: Text(
+                "Finish",
+                style: TextStyle(color: Colors.white, fontSize: 20.0),
+              ),
+              onPressed: () => Navigator.pop(context),
+              width: 120.0,
+            )
+          ],
+        ).show();
+        questionLogic.resetQuestion();
+        scoreResult.clear();
+      } else {
+        if (answer = correctAnswer) {
+          scoreResult.add(Icon(Icons.check, color: Colors.green,));
+        } else {
+          scoreResult.add(Icon(Icons.close, color: Colors.red,));
+        }
+        questionLogic.nextQuestion();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -48,20 +90,8 @@ class _QuizPageState extends State<QuizPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
             child: Row(
-              children: <Widget>[
-                Icon(
-                  Icons.check,
-                  color: Colors.blue,
-                ),
-                Icon(
-                  Icons.check,
-                  color: Colors.blue,
-                ),
-                Icon(
-                  Icons.close,
-                  color: Colors.red,
-                )
-              ],
+                children:
+                scoreResult
             ),
           ),
         ),
@@ -73,7 +103,9 @@ class _QuizPageState extends State<QuizPage> {
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
                   color: Colors.blueGrey),
-              child: Text('4/10',
+              child: Text(questionLogic.getQuestionNumberText().toString()
+                  + '/' +
+                  questionLogic.getTotalQuestion().toString(),
                   style: TextStyle(color: Colors.white, fontSize: 20.0)),
             ),
           ),
@@ -84,7 +116,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'Apakah Benar Tomat itu buah ?',
+                questionLogic.getQuestion(),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 25.0, color: Colors.white),
               ),
@@ -105,7 +137,9 @@ class _QuizPageState extends State<QuizPage> {
                     'Salah',
                     style: TextStyle(fontSize: 20, color: Colors.white),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    checkAnswer(true);
+                  },
                 ),
               ),
             ),
@@ -116,12 +150,14 @@ class _QuizPageState extends State<QuizPage> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25.0),
                       side: BorderSide(color: Colors.white)),
-                  color: Colors.red,
+                  color: Colors.green,
                   child: Text(
                     'Benar',
                     style: TextStyle(fontSize: 20, color: Colors.white),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    checkAnswer(false);
+                  },
                 ),
               ),
             )
